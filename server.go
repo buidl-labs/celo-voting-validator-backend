@@ -59,7 +59,7 @@ func main() {
 		log.Println(err)
 	}
 
-	DropAllTables(DB)
+	// DropAllTables(DB)
 	CreateAllTables(DB)
 
 	indexer.Indexer(DB)
