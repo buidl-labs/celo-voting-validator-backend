@@ -1,0 +1,71 @@
+scalar Time
+
+type Epoch {
+  id: ID!
+  start_block: Int!
+  end_block: Int!
+  number: Int!
+  created_at: Time!
+  validator_group_stats: [ValidatorGroupStats!]!
+  validator_stats: [ValidatorStats!]!
+}
+
+type ValidatorGroup {
+  id: ID!
+  name: String
+  email: String
+  geographic_location: String
+  website_url: String
+  discord_tag: String
+  twitter_username: String
+  address: String!
+  verified_dns: Boolean
+  epochs_served: Int!
+  validators: [Validator!]!
+  stats: [ValidatorGroupStats!]!
+  created_at: Time!
+}
+
+type Validator {
+  id: ID!
+  name: String
+  address: String!
+  memory: Int
+  cpu_capacity: Int
+  disk_storage: Int
+  network_speed: Int
+  validator_group: ValidatorGroup!
+  stats: [ValidatorStats!]!
+  created_at: Time!
+}
+
+type ValidatorGroupStats {
+  id: ID!
+  locked_gold: String!
+  votes: String!
+  voting_cap: String!
+  attestation_percentage: Float!
+  group_share: String!
+  reward_ratio: String!
+  estimated_drr: Float!
+  estimated_mrr: Float!
+  estimated_arr: Float!
+  epoch_num: Int!
+  validator_group: ValidatorGroup!
+  created_at: Time!
+}
+
+type ValidatorStats {
+  id: ID!
+  attestations_requested: Int!
+  attenstations_fulfilled: Int!
+  last_elected: Int!
+  score: String!
+  epoch_num: Int!
+  validator: Validator!
+  created_at: Time!
+}
+
+type Query {
+  ValidatorGroups: [ValidatorGroup!]!
+}
