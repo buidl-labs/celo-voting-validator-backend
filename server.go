@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,13 +12,11 @@ import (
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/database"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/generated"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/model"
-	"github.com/buidl-labs/celo-voting-validator-backend/indexer"
 	"github.com/go-chi/chi"
 	"github.com/go-pg/pg/extra/pgdebug"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	"github.com/joho/godotenv"
-	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
 )
 
@@ -59,17 +56,17 @@ func main() {
 		log.Println(err)
 	}
 
-	// DropAllTables(DB)
+	DropAllTables(DB)
 	CreateAllTables(DB)
 
-	indexer.Indexer(DB)
-	scheduler := cron.New()
-	scheduler.AddFunc("@every 6h", func() {
-		fmt.Println("Starting indexing")
-		indexer.Indexer(DB)
-		fmt.Println("Indexing complete.")
-	})
-	scheduler.Start()
+	// indexer.Indexer(DB)
+	// scheduler := cron.New()
+	// scheduler.AddFunc("@every 6h", func() {
+	// 	fmt.Println("Starting indexing")
+	// 	indexer.Indexer(DB)
+	// 	fmt.Println("Indexing complete.")
+	// })
+	// scheduler.Start()
 
 	router := chi.NewRouter()
 

@@ -18,16 +18,13 @@ type Epoch struct {
 
 type Validator struct {
 	ID               string `pg:"default:gen_random_uuid()"`
-	Name             string
 	Address          string
-	Memory           int
-	CPUCapacity      int
-	DiskStorage      int
-	NetworkSpeed     int
-	ValidatorGroup   *ValidatorGroup
-	ValidatorGroupId string
-	Stats            []*ValidatorStats `pg:"rel:has-many"`
+	Name             string
 	CreatedAt        time.Time
+	CurrentlyElected bool
+	ValidatorGroup   *ValidatorGroup
+	Stats            []*ValidatorStats `pg:"rel:has-many"`
+	ValidatorGroupId string
 }
 
 func (v Validator) String() string {
@@ -35,20 +32,30 @@ func (v Validator) String() string {
 }
 
 type ValidatorGroup struct {
-	ID                 string `pg:"default:gen_random_uuid()"`
-	Name               string
-	Email              string
-	GeographicLocation string
-	WebsiteURL         string
-	DiscordTag         string
-	TwitterUsername    string
-	Address            string
-	VerifiedDNS        bool
-	EpochsServed       int
-	CreatedAt          time.Time
-	NumValidators      int
-	Validators         []*Validator           `pg:"rel:has-many"`
-	Stats              []*ValidatorGroupStats `pg:"rel:has-many"`
+	ID                   string `pg:"default:gen_random_uuid()"`
+	Address              string
+	Name                 string
+	Email                string
+	WebsiteURL           string
+	DiscordTag           string
+	TwitterUsername      string
+	VerifiedDNS          bool
+	GeographicLocation   string
+	CreatedAt            time.Time
+	EpochRegisteredAt    int
+	EpochsServed         int
+	RecievedVotes        int
+	AvailableVotes       int
+	GroupScore           int
+	LockedCelo           int
+	LockedCeloPercentile float64
+	SlashingPenaltyScore float64
+	AttestationScore     float64
+	EstimatedAPY         float64
+	TransparencyScore    float64
+	PerformanceScore     float64
+	Validators           []*Validator           `pg:"rel:has-many"`
+	Stats                []*ValidatorGroupStats `pg:"rel:has-many"`
 }
 
 func (vg ValidatorGroup) String() string {
@@ -57,17 +64,19 @@ func (vg ValidatorGroup) String() string {
 
 type ValidatorGroupStats struct {
 	ID                    string `pg:"default:gen_random_uuid()"`
-	LockedGold            string
+	LockedCelo            string
+	LockedCeloPercentile  float64
 	GroupShare            string
 	Votes                 string
 	VotingCap             string
-	RewardRatio           string
 	AttestationPercentage float64
+	SlashingScore         float64
 	Epoch                 *Epoch
 	EpochId               string
 	ValidatorGroup        *ValidatorGroup
 	ValidatorGroupId      string
 	CreatedAt             time.Time
+	EstimatedAPY          float64
 }
 
 type ValidatorStats struct {
