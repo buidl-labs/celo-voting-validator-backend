@@ -8,9 +8,9 @@ import (
 type Epoch struct {
 	tableName           struct{}               `pg:"epochs"`
 	ID                  string                 `pg:"default:gen_random_uuid()"`
-	StartBlock          int                    `pg:",not_null,use_zero,unique"`
-	EndBlock            int                    `pg:",not_null,use_zero,unique"`
-	Number              int                    `pg:",not_null,unique"`
+	StartBlock          int                    `pg:",notnull,use_zero,unique"`
+	EndBlock            int                    `pg:",notnull,use_zero,unique"`
+	Number              int                    `pg:",notnull,unique"`
 	CreatedAt           time.Time              `pg:"default:now()"`
 	ValidatorGroupStats []*ValidatorGroupStats `pg:"rel:has-many"`
 	ValidatorStats      []*ValidatorStats      `pg:"rel:has-many"`
@@ -18,7 +18,7 @@ type Epoch struct {
 
 type Validator struct {
 	ID               string    `pg:"default:gen_random_uuid()"`
-	Address          string    `pg:",not_null,unique"`
+	Address          string    `pg:",notnull,unique"`
 	Name             string    `pg:",unique"`
 	CreatedAt        time.Time `pg:"default:now()"`
 	CurrentlyElected bool      `pg:",use_zero"`
@@ -33,7 +33,7 @@ func (v Validator) String() string {
 
 type ValidatorGroup struct {
 	ID                   string `pg:"default:gen_random_uuid()"`
-	Address              string `pg:",not_null,unique"`
+	Address              string `pg:",notnull,unique"`
 	Name                 string `pg:",unique"`
 	Email                string `pg:",unique"`
 	WebsiteURL           string `pg:",unique"`
