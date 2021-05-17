@@ -6,11 +6,12 @@ import (
 )
 
 type Epoch struct {
+	//lint:ignore U1000 `tableName` field is unused, but needed for go-pg
 	tableName           struct{}               `pg:"epochs"`
 	ID                  string                 `pg:"default:gen_random_uuid()"`
-	StartBlock          int                    `pg:",notnull,use_zero,unique"`
-	EndBlock            int                    `pg:",notnull,use_zero,unique"`
-	Number              int                    `pg:",notnull,unique"`
+	StartBlock          uint64                 `pg:",unique"`
+	EndBlock            uint64                 `pg:",unique"`
+	Number              uint64                 `pg:",unique"`
 	CreatedAt           time.Time              `pg:"default:now()"`
 	ValidatorGroupStats []*ValidatorGroupStats `pg:"rel:has-many"`
 	ValidatorStats      []*ValidatorStats      `pg:"rel:has-many"`
@@ -42,12 +43,12 @@ type ValidatorGroup struct {
 	VerifiedDNS          bool   `pg:",use_zero"`
 	GeographicLocation   string
 	CreatedAt            time.Time              `pg:"default:now()"`
-	EpochRegisteredAt    int                    `pg:",use_zero"`
-	EpochsServed         int                    `pg:",use_zero,default:0"`
-	RecievedVotes        int                    `pg:",use_zero"`
-	AvailableVotes       int                    `pg:",use_zero"`
-	GroupScore           int                    `pg:",use_zero"`
-	LockedCelo           int                    `pg:",use_zero"`
+	EpochRegisteredAt    uint64                 `pg:",use_zero"`
+	EpochsServed         uint64                 `pg:"default:0,use_zero"`
+	RecievedVotes        uint64                 `pg:",use_zero"`
+	AvailableVotes       uint64                 `pg:",use_zero"`
+	GroupScore           float64                `pg:",use_zero"`
+	LockedCelo           uint64                 `pg:",use_zero"`
 	LockedCeloPercentile float64                `pg:",use_zero"`
 	SlashingPenaltyScore float64                `pg:",use_zero"`
 	AttestationScore     float64                `pg:",use_zero"`
@@ -63,12 +64,12 @@ func (vg ValidatorGroup) String() string {
 }
 
 type ValidatorGroupStats struct {
-	ID                    string `pg:"default:gen_random_uuid()"`
-	LockedCelo            string
+	ID                    string  `pg:"default:gen_random_uuid()"`
+	LockedCelo            uint64  `pg:",use_zero"`
 	LockedCeloPercentile  float64 `pg:",use_zero"`
-	GroupShare            string  `pg:",use_zero"`
-	Votes                 string  `pg:",use_zero"`
-	VotingCap             string  `pg:",use_zero"`
+	GroupShare            float64 `pg:",use_zero"`
+	Votes                 uint64  `pg:",use_zero"`
+	VotingCap             uint64  `pg:",use_zero"`
 	AttestationPercentage float64 `pg:",use_zero"`
 	SlashingScore         float64 `pg:",use_zero"`
 	Epoch                 *Epoch
@@ -76,15 +77,15 @@ type ValidatorGroupStats struct {
 	ValidatorGroup        *ValidatorGroup
 	ValidatorGroupId      string
 	CreatedAt             time.Time `pg:"default:now()"`
-	EstimatedAPY          float64   `pg:",use_zero"`
+	EstimatedAPY          float64   `pg:"estimated_apy,use_zero"`
 }
 
 type ValidatorStats struct {
-	ID                     string `pg:"default:gen_random_uuid()"`
-	AttestationsRequested  int    `pg:",use_zero"`
-	AttenstationsFulfilled int    `pg:",use_zero"`
-	LastElected            int    `pg:",use_zero"`
-	Score                  string `pg:",use_zero"`
+	ID                     string  `pg:"default:gen_random_uuid()"`
+	AttestationsRequested  int     `pg:",use_zero"`
+	AttenstationsFulfilled int     `pg:",use_zero"`
+	LastElected            int     `pg:",use_zero"`
+	Score                  float64 `pg:",use_zero"`
 	Epoch                  *Epoch
 	EpochId                string
 	Validator              *Validator
