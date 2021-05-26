@@ -45,6 +45,7 @@ type ValidatorGroup struct {
 	CreatedAt            time.Time              `pg:"default:now()"`
 	EpochRegisteredAt    uint64                 `pg:",use_zero"`
 	EpochsServed         uint64                 `pg:"default:0,use_zero"`
+	CurrentlyElected     bool                   `pg:"default:false,use_zero"`
 	RecievedVotes        uint64                 `pg:",use_zero"`
 	AvailableVotes       uint64                 `pg:",use_zero"`
 	GroupScore           float64                `pg:",use_zero"`
@@ -72,12 +73,13 @@ type ValidatorGroupStats struct {
 	VotingCap             uint64  `pg:",use_zero"`
 	AttestationPercentage float64 `pg:",use_zero"`
 	SlashingScore         float64 `pg:",use_zero"`
-	Epoch                 *Epoch
-	EpochId               string
-	ValidatorGroup        *ValidatorGroup
-	ValidatorGroupId      string
-	CreatedAt             time.Time `pg:"default:now()"`
-	EstimatedAPY          float64   `pg:"estimated_apy,use_zero"`
+
+	Epoch            *Epoch
+	EpochId          string
+	ValidatorGroup   *ValidatorGroup
+	ValidatorGroupId string
+	CreatedAt        time.Time `pg:"default:now()"`
+	EstimatedAPY     float64   `pg:"estimated_apy,use_zero"`
 }
 
 type ValidatorStats struct {
