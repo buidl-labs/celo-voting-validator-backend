@@ -49,7 +49,7 @@ type ValidatorGroup struct {
 	RecievedVotes        uint64                 `pg:",use_zero"`
 	AvailableVotes       uint64                 `pg:",use_zero"`
 	GroupScore           float64                `pg:",use_zero"`
-	LockedCelo           float64                `pg:",use_zero"`
+	LockedCelo           uint64                 `pg:",use_zero"`
 	LockedCeloPercentile float64                `pg:",use_zero"`
 	SlashingPenaltyScore float64                `pg:",use_zero"`
 	AttestationScore     float64                `pg:",use_zero"`
