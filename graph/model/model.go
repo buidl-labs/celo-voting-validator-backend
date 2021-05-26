@@ -49,7 +49,7 @@ type ValidatorGroup struct {
 	RecievedVotes        uint64                 `pg:",use_zero"`
 	AvailableVotes       uint64                 `pg:",use_zero"`
 	GroupScore           float64                `pg:",use_zero"`
-	LockedCelo           uint64                 `pg:",use_zero"`
+	LockedCelo           float64                `pg:",use_zero"`
 	LockedCeloPercentile float64                `pg:",use_zero"`
 	SlashingPenaltyScore float64                `pg:",use_zero"`
 	AttestationScore     float64                `pg:",use_zero"`
@@ -66,7 +66,7 @@ func (vg ValidatorGroup) String() string {
 
 type ValidatorGroupStats struct {
 	ID                    string  `pg:"default:gen_random_uuid()"`
-	LockedCelo            uint64  `pg:",use_zero"`
+	LockedCelo            float64 `pg:",use_zero"`
 	LockedCeloPercentile  float64 `pg:",use_zero"`
 	GroupShare            float64 `pg:",use_zero"`
 	Votes                 uint64  `pg:",use_zero"`
