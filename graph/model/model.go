@@ -82,14 +82,14 @@ type ValidatorGroupStats struct {
 }
 
 type ValidatorStats struct {
-	ID                     string  `pg:"default:gen_random_uuid()"`
-	AttestationsRequested  int     `pg:",use_zero"`
-	AttenstationsFulfilled int     `pg:",use_zero"`
-	LastElected            int     `pg:",use_zero"`
-	Score                  float64 `pg:",use_zero"`
-	Epoch                  *Epoch
-	EpochId                string
-	Validator              *Validator
-	ValidatorId            string
-	CreatedAt              time.Time `pg:"default:now()"`
+	ID                    string  `pg:"default:gen_random_uuid()"`
+	AttestationsRequested int     `pg:",use_zero"`
+	AttestationsFulfilled int     `pg:",use_zero"`
+	LastElected           int     `pg:",use_zero"`
+	Score                 float64 `pg:",use_zero"`
+	Epoch                 *Epoch
+	EpochId               string
+	Validator             *Validator
+	ValidatorId           string
+	CreatedAt             time.Time `pg:"default:now()"`
 }
