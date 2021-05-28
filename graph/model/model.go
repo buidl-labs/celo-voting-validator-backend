@@ -66,20 +66,19 @@ func (vg ValidatorGroup) String() string {
 
 type ValidatorGroupStats struct {
 	ID                    string  `pg:"default:gen_random_uuid()"`
-	LockedCelo            float64 `pg:",use_zero"`
-	LockedCeloPercentile  float64 `pg:",use_zero"`
+	LockedCelo            uint64  `pg:",use_zero"`
 	GroupShare            float64 `pg:",use_zero"`
 	Votes                 uint64  `pg:",use_zero"`
 	VotingCap             uint64  `pg:",use_zero"`
 	AttestationPercentage float64 `pg:",use_zero"`
 	SlashingScore         float64 `pg:",use_zero"`
-
-	Epoch            *Epoch
-	EpochId          string
-	ValidatorGroup   *ValidatorGroup
-	ValidatorGroupId string
-	CreatedAt        time.Time `pg:"default:now()"`
-	EstimatedAPY     float64   `pg:"estimated_apy,use_zero"`
+	GroupScore            float64 `pg:",use_zero"`
+	Epoch                 *Epoch
+	EpochId               string
+	ValidatorGroup        *ValidatorGroup
+	ValidatorGroupId      string
+	CreatedAt             time.Time `pg:"default:now()"`
+	EstimatedAPY          float64   `pg:"estimated_apy,use_zero"`
 }
 
 type ValidatorStats struct {
