@@ -25,6 +25,7 @@ type ValidatorGroup {
   recieved_votes: Int!
   available_votes: Int!
   group_score: Float!
+  group_share: Float!
   locked_celo: Float
   locked_celo_percentile: Float
   slashing_penalty_score: Float

@@ -43,6 +43,7 @@ type ValidatorGroup struct {
 	VerifiedDNS          bool   `pg:",use_zero"`
 	GeographicLocation   string
 	CreatedAt            time.Time              `pg:"default:now()"`
+	GroupShare           float64                `pg:",use_zero"`
 	EpochRegisteredAt    uint64                 `pg:",use_zero"`
 	EpochsServed         uint64                 `pg:"default:0,use_zero"`
 	CurrentlyElected     bool                   `pg:"default:false,use_zero"`
