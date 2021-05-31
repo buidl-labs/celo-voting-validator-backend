@@ -41,19 +41,27 @@ type Validator {
   address: String!
   currently_elected: Boolean!
   created_at: Time!
-  stats: ValidatorStats!
 }
 
-type ValidatorStats {
-  id: ID!
-  attestations_requested: Int!
-  attenstations_fulfilled: Int!
-  last_elected: Int!
-  score: Float!
-  epoch_num: Int!
-  created_at: Time!
+
+type VGSocialInfo {
+  address: String!
+  name: String
+  email: String
+  website_url: String
+  discord_tag: String
+  twitter_username: String
+  verified_dns: Boolean
+  geographic_location: String
+
 }
 
 type Query {
-  ValidatorGroups: [ValidatorGroup!]!
+  ValidatorGroups(sort_by_score: Boolean, limit: Int): [ValidatorGroup!]!
+  ValidatorGroup(address: String!): ValidatorGroup
+}
+
+
+type Mutation {
+  UpdateVGSocialInfo(VGSocialInfo): ValidatorGroup
 }
