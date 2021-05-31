@@ -19,36 +19,28 @@ type ValidatorGroup {
   verified_dns: Boolean
   geographic_location: String
   created_at: Time!
+  epoch_registered_at: Int
+  epochs_served: Int
+  currently_elected: Boolean!
+  recieved_votes: Int!
+  available_votes: Int!
+  group_score: Float!
+  locked_celo: Float
+  locked_celo_percentile: Float
+  slashing_penalty_score: Float
+  estimated_apy: Float
+  transparency_score: Float
+  performance_score: Float
   validators: [Validator!]!
-  stats: ValidatorGroupStats!
 }
 
 type Validator {
   id: ID!
   name: String
   address: String!
-  memory: Int
-  cpu_capacity: Int
-  disk_storage: Int
-  network_speed: Int
-  validator_group: ValidatorGroup!
+  currently_elected: Boolean!
+  created_at: Time!
   stats: ValidatorStats!
-  created_at: Time!
-}
-
-type ValidatorGroupStats {
-  id: ID!
-  locked_celo: String!
-  locked_celo_percentile: Float!
-  votes: String!
-  voting_cap: String!
-  attestation_percentage: Float!
-  group_share: String!
-  reward_ratio: String!
-  estimated_arr: Float!
-  epoch_num: Int!
-  validator_group: ValidatorGroup!
-  created_at: Time!
 }
 
 type ValidatorStats {
@@ -56,9 +48,8 @@ type ValidatorStats {
   attestations_requested: Int!
   attenstations_fulfilled: Int!
   last_elected: Int!
-  score: String!
+  score: Float!
   epoch_num: Int!
-  validator: Validator!
   created_at: Time!
 }
 

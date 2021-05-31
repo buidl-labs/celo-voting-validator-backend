@@ -66,6 +66,3 @@ models:
 
   ValidatorGroup:
     model: github.com/buidl-labs/celo-voting-validator-backend/graph/model.ValidatorGroup
-
-  ValidatorGroupStats:
-    model: github.com/buidl-labs/celo-voting-validator-backend/graph/model.ValidatorGroupStats
