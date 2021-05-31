@@ -36,9 +36,10 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Epoch() EpochResolver
+	Mutation() MutationResolver
 	Query() QueryResolver
-	ValidatorGroupStats() ValidatorGroupStatsResolver
-	ValidatorStats() ValidatorStatsResolver
+	ValidatorGroup() ValidatorGroupResolver
 }
 
 type DirectiveRoot struct {
@@ -46,87 +47,77 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Epoch struct {
-		CreatedAt           func(childComplexity int) int
-		EndBlock            func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		Number              func(childComplexity int) int
-		StartBlock          func(childComplexity int) int
-		ValidatorGroupStats func(childComplexity int) int
-		ValidatorStats      func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		EndBlock   func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Number     func(childComplexity int) int
+		StartBlock func(childComplexity int) int
+	}
+
+	Mutation struct {
+		UpdateVGSocialInfo func(childComplexity int, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) int
 	}
 
 	Query struct {
-		ValidatorGroups func(childComplexity int) int
+		ValidatorGroup  func(childComplexity int, address string) int
+		ValidatorGroups func(childComplexity int, sortByScore *bool, limit *int) int
 	}
 
 	Validator struct {
-		Address        func(childComplexity int) int
-		CPUCapacity    func(childComplexity int) int
-		CreatedAt      func(childComplexity int) int
-		DiskStorage    func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Memory         func(childComplexity int) int
-		Name           func(childComplexity int) int
-		NetworkSpeed   func(childComplexity int) int
-		Stats          func(childComplexity int) int
-		ValidatorGroup func(childComplexity int) int
+		Address          func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		CurrentlyElected func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Name             func(childComplexity int) int
 	}
 
 	ValidatorGroup struct {
-		Address            func(childComplexity int) int
-		CreatedAt          func(childComplexity int) int
-		DiscordTag         func(childComplexity int) int
-		Email              func(childComplexity int) int
-		EpochsServed       func(childComplexity int) int
-		GeographicLocation func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		Name               func(childComplexity int) int
-		Stats              func(childComplexity int) int
-		TwitterUsername    func(childComplexity int) int
-		Validators         func(childComplexity int) int
-		VerifiedDNS        func(childComplexity int) int
-		WebsiteURL         func(childComplexity int) int
-	}
-
-	ValidatorGroupStats struct {
-		AttestationPercentage func(childComplexity int) int
-		CreatedAt             func(childComplexity int) int
-		EpochNum              func(childComplexity int) int
-		EstimatedArr          func(childComplexity int) int
-		EstimatedDrr          func(childComplexity int) int
-		EstimatedMrr          func(childComplexity int) int
-		GroupShare            func(childComplexity int) int
-		ID                    func(childComplexity int) int
-		LockedGold            func(childComplexity int) int
-		RewardRatio           func(childComplexity int) int
-		ValidatorGroup        func(childComplexity int) int
-		Votes                 func(childComplexity int) int
-		VotingCap             func(childComplexity int) int
-	}
-
-	ValidatorStats struct {
-		AttenstationsFulfilled func(childComplexity int) int
-		AttestationsRequested  func(childComplexity int) int
-		CreatedAt              func(childComplexity int) int
-		EpochNum               func(childComplexity int) int
-		ID                     func(childComplexity int) int
-		LastElected            func(childComplexity int) int
-		Score                  func(childComplexity int) int
-		Validator              func(childComplexity int) int
+		Address              func(childComplexity int) int
+		AvailableVotes       func(childComplexity int) int
+		CurrentlyElected     func(childComplexity int) int
+		DiscordTag           func(childComplexity int) int
+		Email                func(childComplexity int) int
+		EpochRegisteredAt    func(childComplexity int) int
+		EpochsServed         func(childComplexity int) int
+		EstimatedAPY         func(childComplexity int) int
+		GeographicLocation   func(childComplexity int) int
+		GroupScore           func(childComplexity int) int
+		GroupShare           func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		LockedCelo           func(childComplexity int) int
+		LockedCeloPercentile func(childComplexity int) int
+		Name                 func(childComplexity int) int
+		PerformanceScore     func(childComplexity int) int
+		RecievedVotes        func(childComplexity int) int
+		SlashingPenaltyScore func(childComplexity int) int
+		TransparencyScore    func(childComplexity int) int
+		TwitterUsername      func(childComplexity int) int
+		Validators           func(childComplexity int) int
+		VerifiedDNS          func(childComplexity int) int
+		WebsiteURL           func(childComplexity int) int
 	}
 }
 
+type EpochResolver interface {
+	StartBlock(ctx context.Context, obj *model.Epoch) (int, error)
+	EndBlock(ctx context.Context, obj *model.Epoch) (int, error)
+	Number(ctx context.Context, obj *model.Epoch) (int, error)
+}
+type MutationResolver interface {
+	UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error)
+}
 type QueryResolver interface {
-	ValidatorGroups(ctx context.Context) ([]*model.ValidatorGroup, error)
+	ValidatorGroups(ctx context.Context, sortByScore *bool, limit *int) ([]*model.ValidatorGroup, error)
+	ValidatorGroup(ctx context.Context, address string) (*model.ValidatorGroup, error)
 }
-type ValidatorGroupStatsResolver interface {
-	EstimatedDrr(ctx context.Context, obj *model.ValidatorGroupStats) (float64, error)
-	EstimatedMrr(ctx context.Context, obj *model.ValidatorGroupStats) (float64, error)
-	EstimatedArr(ctx context.Context, obj *model.ValidatorGroupStats) (float64, error)
-	EpochNum(ctx context.Context, obj *model.ValidatorGroupStats) (int, error)
-}
-type ValidatorStatsResolver interface {
-	EpochNum(ctx context.Context, obj *model.ValidatorStats) (int, error)
+type ValidatorGroupResolver interface {
+	EpochRegisteredAt(ctx context.Context, obj *model.ValidatorGroup) (int, error)
+	EpochsServed(ctx context.Context, obj *model.ValidatorGroup) (int, error)
+
+	RecievedVotes(ctx context.Context, obj *model.ValidatorGroup) (int, error)
+	AvailableVotes(ctx context.Context, obj *model.ValidatorGroup) (int, error)
+
+	LockedCelo(ctx context.Context, obj *model.ValidatorGroup) (int, error)
 }
 
 type executableSchema struct {
@@ -144,14 +135,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Epoch.created_at":
+	case "Epoch.CreatedAt":
 		if e.complexity.Epoch.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.Epoch.CreatedAt(childComplexity), true
 
-	case "Epoch.end_block":
+	case "Epoch.EndBlock":
 		if e.complexity.Epoch.EndBlock == nil {
 			break
 		}
@@ -165,40 +156,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Epoch.ID(childComplexity), true
 
-	case "Epoch.number":
+	case "Epoch.Number":
 		if e.complexity.Epoch.Number == nil {
 			break
 		}
 
 		return e.complexity.Epoch.Number(childComplexity), true
 
-	case "Epoch.start_block":
+	case "Epoch.StartBlock":
 		if e.complexity.Epoch.StartBlock == nil {
 			break
 		}
 
 		return e.complexity.Epoch.StartBlock(childComplexity), true
 
-	case "Epoch.validator_group_stats":
-		if e.complexity.Epoch.ValidatorGroupStats == nil {
+	case "Mutation.UpdateVGSocialInfo":
+		if e.complexity.Mutation.UpdateVGSocialInfo == nil {
 			break
 		}
 
-		return e.complexity.Epoch.ValidatorGroupStats(childComplexity), true
+		args, err := ec.field_Mutation_UpdateVGSocialInfo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
 
-	case "Epoch.validator_stats":
-		if e.complexity.Epoch.ValidatorStats == nil {
+		return e.complexity.Mutation.UpdateVGSocialInfo(childComplexity, args["vg_id"].(string), args["email"].(*string), args["website_url"].(*string), args["discord_tag"].(*string), args["twitter_username"].(*string), args["geographic_location"].(*string)), true
+
+	case "Query.ValidatorGroup":
+		if e.complexity.Query.ValidatorGroup == nil {
 			break
 		}
 
-		return e.complexity.Epoch.ValidatorStats(childComplexity), true
+		args, err := ec.field_Query_ValidatorGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ValidatorGroup(childComplexity, args["address"].(string)), true
 
 	case "Query.ValidatorGroups":
 		if e.complexity.Query.ValidatorGroups == nil {
 			break
 		}
 
-		return e.complexity.Query.ValidatorGroups(childComplexity), true
+		args, err := ec.field_Query_ValidatorGroups_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ValidatorGroups(childComplexity, args["sort_by_score"].(*bool), args["limit"].(*int)), true
 
 	case "Validator.address":
 		if e.complexity.Validator.Address == nil {
@@ -207,13 +213,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Validator.Address(childComplexity), true
 
-	case "Validator.cpu_capacity":
-		if e.complexity.Validator.CPUCapacity == nil {
-			break
-		}
-
-		return e.complexity.Validator.CPUCapacity(childComplexity), true
-
 	case "Validator.created_at":
 		if e.complexity.Validator.CreatedAt == nil {
 			break
@@ -221,12 +220,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Validator.CreatedAt(childComplexity), true
 
-	case "Validator.disk_storage":
-		if e.complexity.Validator.DiskStorage == nil {
+	case "Validator.currently_elected":
+		if e.complexity.Validator.CurrentlyElected == nil {
 			break
 		}
 
-		return e.complexity.Validator.DiskStorage(childComplexity), true
+		return e.complexity.Validator.CurrentlyElected(childComplexity), true
 
 	case "Validator.id":
 		if e.complexity.Validator.ID == nil {
@@ -235,13 +234,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Validator.ID(childComplexity), true
 
-	case "Validator.memory":
-		if e.complexity.Validator.Memory == nil {
-			break
-		}
-
-		return e.complexity.Validator.Memory(childComplexity), true
-
 	case "Validator.name":
 		if e.complexity.Validator.Name == nil {
 			break
@@ -249,264 +241,166 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Validator.Name(childComplexity), true
 
-	case "Validator.network_speed":
-		if e.complexity.Validator.NetworkSpeed == nil {
-			break
-		}
-
-		return e.complexity.Validator.NetworkSpeed(childComplexity), true
-
-	case "Validator.stats":
-		if e.complexity.Validator.Stats == nil {
-			break
-		}
-
-		return e.complexity.Validator.Stats(childComplexity), true
-
-	case "Validator.validator_group":
-		if e.complexity.Validator.ValidatorGroup == nil {
-			break
-		}
-
-		return e.complexity.Validator.ValidatorGroup(childComplexity), true
-
-	case "ValidatorGroup.address":
+	case "ValidatorGroup.Address":
 		if e.complexity.ValidatorGroup.Address == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.Address(childComplexity), true
 
-	case "ValidatorGroup.created_at":
-		if e.complexity.ValidatorGroup.CreatedAt == nil {
+	case "ValidatorGroup.AvailableVotes":
+		if e.complexity.ValidatorGroup.AvailableVotes == nil {
 			break
 		}
 
-		return e.complexity.ValidatorGroup.CreatedAt(childComplexity), true
+		return e.complexity.ValidatorGroup.AvailableVotes(childComplexity), true
 
-	case "ValidatorGroup.discord_tag":
+	case "ValidatorGroup.CurrentlyElected":
+		if e.complexity.ValidatorGroup.CurrentlyElected == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.CurrentlyElected(childComplexity), true
+
+	case "ValidatorGroup.DiscordTag":
 		if e.complexity.ValidatorGroup.DiscordTag == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.DiscordTag(childComplexity), true
 
-	case "ValidatorGroup.email":
+	case "ValidatorGroup.Email":
 		if e.complexity.ValidatorGroup.Email == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.Email(childComplexity), true
 
-	case "ValidatorGroup.epochs_served":
+	case "ValidatorGroup.EpochRegisteredAt":
+		if e.complexity.ValidatorGroup.EpochRegisteredAt == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.EpochRegisteredAt(childComplexity), true
+
+	case "ValidatorGroup.EpochsServed":
 		if e.complexity.ValidatorGroup.EpochsServed == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.EpochsServed(childComplexity), true
 
-	case "ValidatorGroup.geographic_location":
+	case "ValidatorGroup.EstimatedAPY":
+		if e.complexity.ValidatorGroup.EstimatedAPY == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.EstimatedAPY(childComplexity), true
+
+	case "ValidatorGroup.GeographicLocation":
 		if e.complexity.ValidatorGroup.GeographicLocation == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.GeographicLocation(childComplexity), true
 
-	case "ValidatorGroup.id":
+	case "ValidatorGroup.GroupScore":
+		if e.complexity.ValidatorGroup.GroupScore == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.GroupScore(childComplexity), true
+
+	case "ValidatorGroup.GroupShare":
+		if e.complexity.ValidatorGroup.GroupShare == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.GroupShare(childComplexity), true
+
+	case "ValidatorGroup.ID":
 		if e.complexity.ValidatorGroup.ID == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.ID(childComplexity), true
 
-	case "ValidatorGroup.name":
+	case "ValidatorGroup.LockedCelo":
+		if e.complexity.ValidatorGroup.LockedCelo == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.LockedCelo(childComplexity), true
+
+	case "ValidatorGroup.LockedCeloPercentile":
+		if e.complexity.ValidatorGroup.LockedCeloPercentile == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.LockedCeloPercentile(childComplexity), true
+
+	case "ValidatorGroup.Name":
 		if e.complexity.ValidatorGroup.Name == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.Name(childComplexity), true
 
-	case "ValidatorGroup.stats":
-		if e.complexity.ValidatorGroup.Stats == nil {
+	case "ValidatorGroup.PerformanceScore":
+		if e.complexity.ValidatorGroup.PerformanceScore == nil {
 			break
 		}
 
-		return e.complexity.ValidatorGroup.Stats(childComplexity), true
+		return e.complexity.ValidatorGroup.PerformanceScore(childComplexity), true
 
-	case "ValidatorGroup.twitter_username":
+	case "ValidatorGroup.RecievedVotes":
+		if e.complexity.ValidatorGroup.RecievedVotes == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.RecievedVotes(childComplexity), true
+
+	case "ValidatorGroup.SlashingPenaltyScore":
+		if e.complexity.ValidatorGroup.SlashingPenaltyScore == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.SlashingPenaltyScore(childComplexity), true
+
+	case "ValidatorGroup.TransparencyScore":
+		if e.complexity.ValidatorGroup.TransparencyScore == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.TransparencyScore(childComplexity), true
+
+	case "ValidatorGroup.TwitterUsername":
 		if e.complexity.ValidatorGroup.TwitterUsername == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.TwitterUsername(childComplexity), true
 
-	case "ValidatorGroup.validators":
+	case "ValidatorGroup.Validators":
 		if e.complexity.ValidatorGroup.Validators == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.Validators(childComplexity), true
 
-	case "ValidatorGroup.verified_dns":
+	case "ValidatorGroup.VerifiedDns":
 		if e.complexity.ValidatorGroup.VerifiedDNS == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.VerifiedDNS(childComplexity), true
 
-	case "ValidatorGroup.website_url":
+	case "ValidatorGroup.WebsiteUrl":
 		if e.complexity.ValidatorGroup.WebsiteURL == nil {
 			break
 		}
 
 		return e.complexity.ValidatorGroup.WebsiteURL(childComplexity), true
-
-	case "ValidatorGroupStats.attestation_percentage":
-		if e.complexity.ValidatorGroupStats.AttestationPercentage == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.AttestationPercentage(childComplexity), true
-
-	case "ValidatorGroupStats.created_at":
-		if e.complexity.ValidatorGroupStats.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.CreatedAt(childComplexity), true
-
-	case "ValidatorGroupStats.epoch_num":
-		if e.complexity.ValidatorGroupStats.EpochNum == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.EpochNum(childComplexity), true
-
-	case "ValidatorGroupStats.estimated_arr":
-		if e.complexity.ValidatorGroupStats.EstimatedArr == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.EstimatedArr(childComplexity), true
-
-	case "ValidatorGroupStats.estimated_drr":
-		if e.complexity.ValidatorGroupStats.EstimatedDrr == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.EstimatedDrr(childComplexity), true
-
-	case "ValidatorGroupStats.estimated_mrr":
-		if e.complexity.ValidatorGroupStats.EstimatedMrr == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.EstimatedMrr(childComplexity), true
-
-	case "ValidatorGroupStats.group_share":
-		if e.complexity.ValidatorGroupStats.GroupShare == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.GroupShare(childComplexity), true
-
-	case "ValidatorGroupStats.id":
-		if e.complexity.ValidatorGroupStats.ID == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.ID(childComplexity), true
-
-	case "ValidatorGroupStats.locked_gold":
-		if e.complexity.ValidatorGroupStats.LockedGold == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.LockedGold(childComplexity), true
-
-	case "ValidatorGroupStats.reward_ratio":
-		if e.complexity.ValidatorGroupStats.RewardRatio == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.RewardRatio(childComplexity), true
-
-	case "ValidatorGroupStats.validator_group":
-		if e.complexity.ValidatorGroupStats.ValidatorGroup == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.ValidatorGroup(childComplexity), true
-
-	case "ValidatorGroupStats.votes":
-		if e.complexity.ValidatorGroupStats.Votes == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.Votes(childComplexity), true
-
-	case "ValidatorGroupStats.voting_cap":
-		if e.complexity.ValidatorGroupStats.VotingCap == nil {
-			break
-		}
-
-		return e.complexity.ValidatorGroupStats.VotingCap(childComplexity), true
-
-	case "ValidatorStats.attenstations_fulfilled":
-		if e.complexity.ValidatorStats.AttenstationsFulfilled == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.AttenstationsFulfilled(childComplexity), true
-
-	case "ValidatorStats.attestations_requested":
-		if e.complexity.ValidatorStats.AttestationsRequested == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.AttestationsRequested(childComplexity), true
-
-	case "ValidatorStats.created_at":
-		if e.complexity.ValidatorStats.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.CreatedAt(childComplexity), true
-
-	case "ValidatorStats.epoch_num":
-		if e.complexity.ValidatorStats.EpochNum == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.EpochNum(childComplexity), true
-
-	case "ValidatorStats.id":
-		if e.complexity.ValidatorStats.ID == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.ID(childComplexity), true
-
-	case "ValidatorStats.last_elected":
-		if e.complexity.ValidatorStats.LastElected == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.LastElected(childComplexity), true
-
-	case "ValidatorStats.score":
-		if e.complexity.ValidatorStats.Score == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.Score(childComplexity), true
-
-	case "ValidatorStats.validator":
-		if e.complexity.ValidatorStats.Validator == nil {
-			break
-		}
-
-		return e.complexity.ValidatorStats.Validator(childComplexity), true
 
 	}
 	return 0, false
@@ -525,6 +419,20 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			}
 			first = false
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -562,72 +470,63 @@ var sources = []*ast.Source{
 
 type Epoch {
   id: ID!
-  start_block: Int!
-  end_block: Int!
-  number: Int!
-  created_at: Time!
-  validator_group_stats: [ValidatorGroupStats!]!
-  validator_stats: [ValidatorStats!]!
+  StartBlock: Int!
+  EndBlock: Int!
+  Number: Int!
+  CreatedAt: Time!
 }
 
 type ValidatorGroup {
-  id: ID!
-  name: String
-  email: String
-  geographic_location: String
-  website_url: String
-  discord_tag: String
-  twitter_username: String
-  address: String!
-  verified_dns: Boolean
-  epochs_served: Int!
-  validators: [Validator!]!
-  stats: [ValidatorGroupStats!]!
-  created_at: Time!
+  ID: ID!
+  Address: String!
+  Name: String
+  Email: String
+  WebsiteUrl: String
+  DiscordTag: String
+  TwitterUsername: String
+  VerifiedDns: Boolean!
+  GeographicLocation: String!
+  EpochRegisteredAt: Int!
+  EpochsServed: Int!
+  CurrentlyElected: Boolean!
+  RecievedVotes: Int!
+  AvailableVotes: Int!
+  GroupScore: Float!
+  GroupShare: Float!
+  LockedCelo: Int!
+  LockedCeloPercentile: Float!
+  SlashingPenaltyScore: Float!
+  EstimatedAPY: Float!
+  TransparencyScore: Float!
+  PerformanceScore: Float!
+  Validators: [Validator!]!
 }
 
 type Validator {
   id: ID!
   name: String
   address: String!
-  memory: Int
-  cpu_capacity: Int
-  disk_storage: Int
-  network_speed: Int
-  validator_group: ValidatorGroup!
-  stats: [ValidatorStats!]!
-  created_at: Time!
-}
-
-type ValidatorGroupStats {
-  id: ID!
-  locked_gold: String!
-  votes: String!
-  voting_cap: String!
-  attestation_percentage: Float!
-  group_share: String!
-  reward_ratio: String!
-  estimated_drr: Float!
-  estimated_mrr: Float!
-  estimated_arr: Float!
-  epoch_num: Int!
-  validator_group: ValidatorGroup!
-  created_at: Time!
-}
-
-type ValidatorStats {
-  id: ID!
-  attestations_requested: Int!
-  attenstations_fulfilled: Int!
-  last_elected: Int!
-  score: String!
-  epoch_num: Int!
-  validator: Validator!
+  currently_elected: Boolean!
   created_at: Time!
 }
 
 type Query {
-  ValidatorGroups: [ValidatorGroup!]!
+  ValidatorGroups(
+    sort_by_score: Boolean = false
+    limit: Int = 150
+  ): [ValidatorGroup!]!
+  ValidatorGroup(address: String!): ValidatorGroup
+}
+
+type Mutation {
+  UpdateVGSocialInfo(
+    vg_id: ID!
+    email: String
+    website_url: String
+    discord_tag: String
+    twitter_username: String
+    geographic_location: String
+  ): ValidatorGroup
 }
 `, BuiltIn: false},
 }
@@ -636,6 +535,105 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_UpdateVGSocialInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vg_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vg_id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vg_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["website_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("website_url"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["website_url"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["discord_tag"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_tag"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["discord_tag"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["twitter_username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("twitter_username"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["twitter_username"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["geographic_location"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geographic_location"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["geographic_location"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ValidatorGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["address"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["address"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ValidatorGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["sort_by_score"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_by_score"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort_by_score"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -725,7 +723,7 @@ func (ec *executionContext) _Epoch_id(ctx context.Context, field graphql.Collect
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Epoch_start_block(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
+func (ec *executionContext) _Epoch_StartBlock(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -736,14 +734,14 @@ func (ec *executionContext) _Epoch_start_block(ctx context.Context, field graphq
 		Object:     "Epoch",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.StartBlock, nil
+		return ec.resolvers.Epoch().StartBlock(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -760,7 +758,7 @@ func (ec *executionContext) _Epoch_start_block(ctx context.Context, field graphq
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Epoch_end_block(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
+func (ec *executionContext) _Epoch_EndBlock(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -771,14 +769,14 @@ func (ec *executionContext) _Epoch_end_block(ctx context.Context, field graphql.
 		Object:     "Epoch",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EndBlock, nil
+		return ec.resolvers.Epoch().EndBlock(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -795,7 +793,7 @@ func (ec *executionContext) _Epoch_end_block(ctx context.Context, field graphql.
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Epoch_number(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
+func (ec *executionContext) _Epoch_Number(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -806,14 +804,14 @@ func (ec *executionContext) _Epoch_number(ctx context.Context, field graphql.Col
 		Object:     "Epoch",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Number, nil
+		return ec.resolvers.Epoch().Number(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -830,7 +828,7 @@ func (ec *executionContext) _Epoch_number(ctx context.Context, field graphql.Col
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Epoch_created_at(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
+func (ec *executionContext) _Epoch_CreatedAt(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -865,7 +863,7 @@ func (ec *executionContext) _Epoch_created_at(ctx context.Context, field graphql
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Epoch_validator_group_stats(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_UpdateVGSocialInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -873,66 +871,35 @@ func (ec *executionContext) _Epoch_validator_group_stats(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "Epoch",
+		Object:     "Mutation",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_UpdateVGSocialInfo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ValidatorGroupStats, nil
+		return ec.resolvers.Mutation().UpdateVGSocialInfo(rctx, args["vg_id"].(string), args["email"].(*string), args["website_url"].(*string), args["discord_tag"].(*string), args["twitter_username"].(*string), args["geographic_location"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.ValidatorGroupStats)
+	res := resTmp.(*model.ValidatorGroup)
 	fc.Result = res
-	return ec.marshalNValidatorGroupStats2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroupStatsᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Epoch_validator_stats(ctx context.Context, field graphql.CollectedField, obj *model.Epoch) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Epoch",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ValidatorStats, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ValidatorStats)
-	fc.Result = res
-	return ec.marshalNValidatorStats2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorStatsᚄ(ctx, field.Selections, res)
+	return ec.marshalOValidatorGroup2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_ValidatorGroups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -951,9 +918,16 @@ func (ec *executionContext) _Query_ValidatorGroups(ctx context.Context, field gr
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ValidatorGroups_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ValidatorGroups(rctx)
+		return ec.resolvers.Query().ValidatorGroups(rctx, args["sort_by_score"].(*bool), args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -968,6 +942,45 @@ func (ec *executionContext) _Query_ValidatorGroups(ctx context.Context, field gr
 	res := resTmp.([]*model.ValidatorGroup)
 	fc.Result = res
 	return ec.marshalNValidatorGroup2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroupᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ValidatorGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ValidatorGroup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ValidatorGroup(rctx, args["address"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ValidatorGroup)
+	fc.Result = res
+	return ec.marshalOValidatorGroup2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1143,7 +1156,7 @@ func (ec *executionContext) _Validator_address(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Validator_memory(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
+func (ec *executionContext) _Validator_currently_elected(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1161,135 +1174,7 @@ func (ec *executionContext) _Validator_memory(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Memory, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Validator_cpu_capacity(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Validator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CPUCapacity, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Validator_disk_storage(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Validator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DiskStorage, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Validator_network_speed(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Validator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NetworkSpeed, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Validator_validator_group(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Validator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ValidatorGroup, nil
+		return obj.CurrentlyElected, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1301,44 +1186,9 @@ func (ec *executionContext) _Validator_validator_group(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ValidatorGroup)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNValidatorGroup2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroup(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Validator_stats(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Validator",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Stats, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ValidatorStats)
-	fc.Result = res
-	return ec.marshalNValidatorStats2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorStatsᚄ(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Validator_created_at(ctx context.Context, field graphql.CollectedField, obj *model.Validator) (ret graphql.Marshaler) {
@@ -1376,7 +1226,7 @@ func (ec *executionContext) _Validator_created_at(ctx context.Context, field gra
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ValidatorGroup_id(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ValidatorGroup_ID(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1411,199 +1261,7 @@ func (ec *executionContext) _ValidatorGroup_id(ctx context.Context, field graphq
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ValidatorGroup_name(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_email(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Email, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_geographic_location(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.GeographicLocation, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_website_url(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.WebsiteURL, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_discord_tag(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DiscordTag, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_twitter_username(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TwitterUsername, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_address(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ValidatorGroup_Address(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1638,7 +1296,167 @@ func (ec *executionContext) _ValidatorGroup_address(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ValidatorGroup_verified_dns(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ValidatorGroup_Name(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_Email(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_WebsiteUrl(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WebsiteURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_DiscordTag(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DiscordTag, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_TwitterUsername(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TwitterUsername, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_VerifiedDns(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1663,14 +1481,17 @@ func (ec *executionContext) _ValidatorGroup_verified_dns(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ValidatorGroup_epochs_served(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ValidatorGroup_GeographicLocation(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1688,7 +1509,42 @@ func (ec *executionContext) _ValidatorGroup_epochs_served(ctx context.Context, f
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EpochsServed, nil
+		return obj.GeographicLocation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_EpochRegisteredAt(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ValidatorGroup().EpochRegisteredAt(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1705,7 +1561,427 @@ func (ec *executionContext) _ValidatorGroup_epochs_served(ctx context.Context, f
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ValidatorGroup_validators(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ValidatorGroup_EpochsServed(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ValidatorGroup().EpochsServed(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_CurrentlyElected(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentlyElected, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_RecievedVotes(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ValidatorGroup().RecievedVotes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_AvailableVotes(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ValidatorGroup().AvailableVotes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_GroupScore(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GroupScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_GroupShare(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GroupShare, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_LockedCelo(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ValidatorGroup().LockedCelo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_LockedCeloPercentile(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LockedCeloPercentile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_SlashingPenaltyScore(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SlashingPenaltyScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_EstimatedAPY(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EstimatedAPY, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_TransparencyScore(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TransparencyScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_PerformanceScore(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PerformanceScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_Validators(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1738,811 +2014,6 @@ func (ec *executionContext) _ValidatorGroup_validators(ctx context.Context, fiel
 	res := resTmp.([]*model.Validator)
 	fc.Result = res
 	return ec.marshalNValidator2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_stats(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Stats, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ValidatorGroupStats)
-	fc.Result = res
-	return ec.marshalNValidatorGroupStats2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroupStatsᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroup_created_at(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_id(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_locked_gold(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LockedGold, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_votes(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Votes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_voting_cap(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VotingCap, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_attestation_percentage(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AttestationPercentage, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_group_share(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.GroupShare, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_reward_ratio(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RewardRatio, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_estimated_drr(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidatorGroupStats().EstimatedDrr(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_estimated_mrr(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidatorGroupStats().EstimatedMrr(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_estimated_arr(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidatorGroupStats().EstimatedArr(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_epoch_num(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidatorGroupStats().EpochNum(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_validator_group(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ValidatorGroup, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.ValidatorGroup)
-	fc.Result = res
-	return ec.marshalNValidatorGroup2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroup(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorGroupStats_created_at(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroupStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorGroupStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_id(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_attestations_requested(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AttestationsRequested, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_attenstations_fulfilled(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AttenstationsFulfilled, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_last_elected(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastElected, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_score(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Score, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_epoch_num(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ValidatorStats().EpochNum(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_validator(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Validator, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.Validator)
-	fc.Result = res
-	return ec.marshalNValidator2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidator(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ValidatorStats_created_at(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ValidatorStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3654,38 +3125,83 @@ func (ec *executionContext) _Epoch(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Epoch_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "start_block":
-			out.Values[i] = ec._Epoch_start_block(ctx, field, obj)
+		case "StartBlock":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Epoch_StartBlock(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "EndBlock":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Epoch_EndBlock(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "Number":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Epoch_Number(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "CreatedAt":
+			out.Values[i] = ec._Epoch_CreatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "end_block":
-			out.Values[i] = ec._Epoch_end_block(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "number":
-			out.Values[i] = ec._Epoch_number(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "created_at":
-			out.Values[i] = ec._Epoch_created_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "validator_group_stats":
-			out.Values[i] = ec._Epoch_validator_group_stats(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "validator_stats":
-			out.Values[i] = ec._Epoch_validator_stats(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var mutationImplementors = []string{"Mutation"}
+
+func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Mutation",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Mutation")
+		case "UpdateVGSocialInfo":
+			out.Values[i] = ec._Mutation_UpdateVGSocialInfo(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3726,6 +3242,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "ValidatorGroup":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ValidatorGroup(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -3764,21 +3291,8 @@ func (ec *executionContext) _Validator(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "memory":
-			out.Values[i] = ec._Validator_memory(ctx, field, obj)
-		case "cpu_capacity":
-			out.Values[i] = ec._Validator_cpu_capacity(ctx, field, obj)
-		case "disk_storage":
-			out.Values[i] = ec._Validator_disk_storage(ctx, field, obj)
-		case "network_speed":
-			out.Values[i] = ec._Validator_network_speed(ctx, field, obj)
-		case "validator_group":
-			out.Values[i] = ec._Validator_validator_group(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "stats":
-			out.Values[i] = ec._Validator_stats(ctx, field, obj)
+		case "currently_elected":
+			out.Values[i] = ec._Validator_currently_elected(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3809,108 +3323,37 @@ func (ec *executionContext) _ValidatorGroup(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ValidatorGroup")
-		case "id":
-			out.Values[i] = ec._ValidatorGroup_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-			out.Values[i] = ec._ValidatorGroup_name(ctx, field, obj)
-		case "email":
-			out.Values[i] = ec._ValidatorGroup_email(ctx, field, obj)
-		case "geographic_location":
-			out.Values[i] = ec._ValidatorGroup_geographic_location(ctx, field, obj)
-		case "website_url":
-			out.Values[i] = ec._ValidatorGroup_website_url(ctx, field, obj)
-		case "discord_tag":
-			out.Values[i] = ec._ValidatorGroup_discord_tag(ctx, field, obj)
-		case "twitter_username":
-			out.Values[i] = ec._ValidatorGroup_twitter_username(ctx, field, obj)
-		case "address":
-			out.Values[i] = ec._ValidatorGroup_address(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "verified_dns":
-			out.Values[i] = ec._ValidatorGroup_verified_dns(ctx, field, obj)
-		case "epochs_served":
-			out.Values[i] = ec._ValidatorGroup_epochs_served(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "validators":
-			out.Values[i] = ec._ValidatorGroup_validators(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "stats":
-			out.Values[i] = ec._ValidatorGroup_stats(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "created_at":
-			out.Values[i] = ec._ValidatorGroup_created_at(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var validatorGroupStatsImplementors = []string{"ValidatorGroupStats"}
-
-func (ec *executionContext) _ValidatorGroupStats(ctx context.Context, sel ast.SelectionSet, obj *model.ValidatorGroupStats) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, validatorGroupStatsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ValidatorGroupStats")
-		case "id":
-			out.Values[i] = ec._ValidatorGroupStats_id(ctx, field, obj)
+		case "ID":
+			out.Values[i] = ec._ValidatorGroup_ID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "locked_gold":
-			out.Values[i] = ec._ValidatorGroupStats_locked_gold(ctx, field, obj)
+		case "Address":
+			out.Values[i] = ec._ValidatorGroup_Address(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "votes":
-			out.Values[i] = ec._ValidatorGroupStats_votes(ctx, field, obj)
+		case "Name":
+			out.Values[i] = ec._ValidatorGroup_Name(ctx, field, obj)
+		case "Email":
+			out.Values[i] = ec._ValidatorGroup_Email(ctx, field, obj)
+		case "WebsiteUrl":
+			out.Values[i] = ec._ValidatorGroup_WebsiteUrl(ctx, field, obj)
+		case "DiscordTag":
+			out.Values[i] = ec._ValidatorGroup_DiscordTag(ctx, field, obj)
+		case "TwitterUsername":
+			out.Values[i] = ec._ValidatorGroup_TwitterUsername(ctx, field, obj)
+		case "VerifiedDns":
+			out.Values[i] = ec._ValidatorGroup_VerifiedDns(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "voting_cap":
-			out.Values[i] = ec._ValidatorGroupStats_voting_cap(ctx, field, obj)
+		case "GeographicLocation":
+			out.Values[i] = ec._ValidatorGroup_GeographicLocation(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "attestation_percentage":
-			out.Values[i] = ec._ValidatorGroupStats_attestation_percentage(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "group_share":
-			out.Values[i] = ec._ValidatorGroupStats_group_share(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "reward_ratio":
-			out.Values[i] = ec._ValidatorGroupStats_reward_ratio(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "estimated_drr":
+		case "EpochRegisteredAt":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3918,13 +3361,13 @@ func (ec *executionContext) _ValidatorGroupStats(ctx context.Context, sel ast.Se
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ValidatorGroupStats_estimated_drr(ctx, field, obj)
+				res = ec._ValidatorGroup_EpochRegisteredAt(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "estimated_mrr":
+		case "EpochsServed":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3932,13 +3375,18 @@ func (ec *executionContext) _ValidatorGroupStats(ctx context.Context, sel ast.Se
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ValidatorGroupStats_estimated_mrr(ctx, field, obj)
+				res = ec._ValidatorGroup_EpochsServed(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "estimated_arr":
+		case "CurrentlyElected":
+			out.Values[i] = ec._ValidatorGroup_CurrentlyElected(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "RecievedVotes":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3946,13 +3394,13 @@ func (ec *executionContext) _ValidatorGroupStats(ctx context.Context, sel ast.Se
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ValidatorGroupStats_estimated_arr(ctx, field, obj)
+				res = ec._ValidatorGroup_RecievedVotes(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "epoch_num":
+		case "AvailableVotes":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3960,70 +3408,23 @@ func (ec *executionContext) _ValidatorGroupStats(ctx context.Context, sel ast.Se
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ValidatorGroupStats_epoch_num(ctx, field, obj)
+				res = ec._ValidatorGroup_AvailableVotes(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "validator_group":
-			out.Values[i] = ec._ValidatorGroupStats_validator_group(ctx, field, obj)
+		case "GroupScore":
+			out.Values[i] = ec._ValidatorGroup_GroupScore(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "created_at":
-			out.Values[i] = ec._ValidatorGroupStats_created_at(ctx, field, obj)
+		case "GroupShare":
+			out.Values[i] = ec._ValidatorGroup_GroupShare(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var validatorStatsImplementors = []string{"ValidatorStats"}
-
-func (ec *executionContext) _ValidatorStats(ctx context.Context, sel ast.SelectionSet, obj *model.ValidatorStats) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, validatorStatsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ValidatorStats")
-		case "id":
-			out.Values[i] = ec._ValidatorStats_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "attestations_requested":
-			out.Values[i] = ec._ValidatorStats_attestations_requested(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "attenstations_fulfilled":
-			out.Values[i] = ec._ValidatorStats_attenstations_fulfilled(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "last_elected":
-			out.Values[i] = ec._ValidatorStats_last_elected(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "score":
-			out.Values[i] = ec._ValidatorStats_score(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "epoch_num":
+		case "LockedCelo":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -4031,19 +3432,39 @@ func (ec *executionContext) _ValidatorStats(ctx context.Context, sel ast.Selecti
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ValidatorStats_epoch_num(ctx, field, obj)
+				res = ec._ValidatorGroup_LockedCelo(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "validator":
-			out.Values[i] = ec._ValidatorStats_validator(ctx, field, obj)
+		case "LockedCeloPercentile":
+			out.Values[i] = ec._ValidatorGroup_LockedCeloPercentile(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "created_at":
-			out.Values[i] = ec._ValidatorStats_created_at(ctx, field, obj)
+		case "SlashingPenaltyScore":
+			out.Values[i] = ec._ValidatorGroup_SlashingPenaltyScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "EstimatedAPY":
+			out.Values[i] = ec._ValidatorGroup_EstimatedAPY(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "TransparencyScore":
+			out.Values[i] = ec._ValidatorGroup_TransparencyScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "PerformanceScore":
+			out.Values[i] = ec._ValidatorGroup_PerformanceScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "Validators":
+			out.Values[i] = ec._ValidatorGroup_Validators(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -4487,100 +3908,6 @@ func (ec *executionContext) marshalNValidatorGroup2ᚖgithubᚗcomᚋbuidlᚑlab
 	return ec._ValidatorGroup(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNValidatorGroupStats2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroupStatsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidatorGroupStats) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNValidatorGroupStats2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroupStats(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNValidatorGroupStats2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroupStats(ctx context.Context, sel ast.SelectionSet, v *model.ValidatorGroupStats) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._ValidatorGroupStats(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNValidatorStats2ᚕᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorStatsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ValidatorStats) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNValidatorStats2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorStats(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNValidatorStats2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorStats(ctx context.Context, sel ast.SelectionSet, v *model.ValidatorStats) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._ValidatorStats(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -4834,13 +4161,19 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
 	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	return graphql.MarshalInt(v)
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
@@ -4865,6 +4198,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) marshalOValidatorGroup2ᚖgithubᚗcomᚋbuidlᚑlabsᚋceloᚑvotingᚑvalidatorᚑbackendᚋgraphᚋmodelᚐValidatorGroup(ctx context.Context, sel ast.SelectionSet, v *model.ValidatorGroup) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ValidatorGroup(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

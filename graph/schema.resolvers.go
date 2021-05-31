@@ -5,82 +5,124 @@ package graph
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"log"
+	"errors"
 
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/generated"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/model"
 )
 
-func (r *queryResolver) ValidatorGroups(ctx context.Context) ([]*model.ValidatorGroup, error) {
-	var vgs_db []*model.ValidatorGroup
-	if err := r.DB.Model(&vgs_db).Relation("Validators").Relation("Stats").Relation("Validators.Stats").Select(); err != nil {
-		log.Println(err)
-		return vgs_db, err
+func (r *epochResolver) StartBlock(ctx context.Context, obj *model.Epoch) (int, error) {
+	return int(obj.StartBlock), nil
+}
+
+func (r *epochResolver) EndBlock(ctx context.Context, obj *model.Epoch) (int, error) {
+	return int(obj.EndBlock), nil
+}
+
+func (r *epochResolver) Number(ctx context.Context, obj *model.Epoch) (int, error) {
+	return int(obj.Number), nil
+}
+
+func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error) {
+	vg := new(model.ValidatorGroup)
+	if err := r.DB.Model(vg).Where("ID = ?", vgID).Relation("Validators").Limit(1).Select(); err != nil {
+		return vg, err
+	}
+	vg_updated := false
+	if email != nil {
+		vg.Email = *email
+		vg_updated = true
+	}
+	if websiteURL != nil {
+		vg.WebsiteURL = *websiteURL
+		vg_updated = true
+	}
+	if discordTag != nil {
+		vg.DiscordTag = *discordTag
+		vg_updated = true
+	}
+	if twitterUsername != nil {
+		vg.TwitterUsername = *twitterUsername
+		vg_updated = true
+	}
+	if geographicLocation != nil {
+		vg.GeographicLocation = *geographicLocation
+		vg_updated = true
 	}
 
-	// log.Println(len(vgs_db))
-	// var vgs []*model.ValidatorGroup
-	// vg := &model.ValidatorGroup{
-	// 	ID:   "some id",
-	// 	Name: "Some Validator",
-	// }
-	// return append(vgs, vg), nil
+	if vg_updated {
+		_, err := r.DB.Model(vg).WherePK().Update()
+		if err != nil {
+			return vg, err
+		}
+	}
+
+	return vg, nil
+}
+
+func (r *queryResolver) ValidatorGroups(ctx context.Context, sortByScore *bool, limit *int) ([]*model.ValidatorGroup, error) {
+	var vgs_db []*model.ValidatorGroup
+	if limit != nil {
+		if *limit <= 0 {
+			return vgs_db, errors.New("limit needs to be more than 0")
+		}
+
+		err := r.DB.Model(&vgs_db).Relation("Validators").Limit(*limit).Select()
+		if err != nil {
+			return vgs_db, err
+		}
+		return vgs_db, nil
+	}
+
+	if err := r.DB.Model(&vgs_db).Relation("Validators").Select(); err != nil {
+		return vgs_db, err
+	}
 	return vgs_db, nil
 }
 
-func (r *validatorGroupStatsResolver) EstimatedDrr(ctx context.Context, obj *model.ValidatorGroupStats) (float64, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *validatorGroupStatsResolver) EstimatedMrr(ctx context.Context, obj *model.ValidatorGroupStats) (float64, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *validatorGroupStatsResolver) EstimatedArr(ctx context.Context, obj *model.ValidatorGroupStats) (float64, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *validatorGroupStatsResolver) EpochNum(ctx context.Context, obj *model.ValidatorGroupStats) (int, error) {
-	epoch := new(model.Epoch)
-	if err := r.DB.Model(epoch).Where("id = ?", obj.EpochId).Select(); err != nil {
-		return -1, err
+func (r *queryResolver) ValidatorGroup(ctx context.Context, address string) (*model.ValidatorGroup, error) {
+	vg := new(model.ValidatorGroup)
+	if err := r.DB.Model(vg).Where("address = ?", address).Relation("Validators").Limit(1).Select(); err != nil {
+		return vg, err
 	}
-	// PrettyPrint(obj)
-	return epoch.Number, nil
+	return vg, nil
 }
 
-func (r *validatorStatsResolver) EpochNum(ctx context.Context, obj *model.ValidatorStats) (int, error) {
-	epoch := new(model.Epoch)
-	if err := r.DB.Model(epoch).Where("id = ?", obj.EpochId).Select(); err != nil {
-		return -1, err
-	}
-	// PrettyPrint(obj)
-	return epoch.Number, nil
+func (r *validatorGroupResolver) EpochRegisteredAt(ctx context.Context, obj *model.ValidatorGroup) (int, error) {
+	return int(obj.EpochRegisteredAt), nil
 }
+
+func (r *validatorGroupResolver) EpochsServed(ctx context.Context, obj *model.ValidatorGroup) (int, error) {
+	return int(obj.EpochsServed), nil
+}
+
+func (r *validatorGroupResolver) RecievedVotes(ctx context.Context, obj *model.ValidatorGroup) (int, error) {
+	return int(obj.RecievedVotes), nil
+}
+
+func (r *validatorGroupResolver) AvailableVotes(ctx context.Context, obj *model.ValidatorGroup) (int, error) {
+	return int(obj.AvailableVotes), nil
+}
+
+func (r *validatorGroupResolver) LockedCelo(ctx context.Context, obj *model.ValidatorGroup) (int, error) {
+	return int(obj.LockedCelo), nil
+}
+
+// Epoch returns generated.EpochResolver implementation.
+func (r *Resolver) Epoch() generated.EpochResolver { return &epochResolver{r} }
+
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// ValidatorGroupStats returns generated.ValidatorGroupStatsResolver implementation.
-func (r *Resolver) ValidatorGroupStats() generated.ValidatorGroupStatsResolver {
-	return &validatorGroupStatsResolver{r}
+// ValidatorGroup returns generated.ValidatorGroupResolver implementation.
+func (r *Resolver) ValidatorGroup() generated.ValidatorGroupResolver {
+	return &validatorGroupResolver{r}
 }
 
-// ValidatorStats returns generated.ValidatorStatsResolver implementation.
-func (r *Resolver) ValidatorStats() generated.ValidatorStatsResolver {
-	return &validatorStatsResolver{r}
-}
-
+type epochResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type validatorGroupStatsResolver struct{ *Resolver }
-type validatorStatsResolver struct{ *Resolver }
-
-func PrettyPrint(v interface{}) (err error) {
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err == nil {
-		fmt.Println(string(b))
-	}
-	return
-}
+type validatorGroupResolver struct{ *Resolver }

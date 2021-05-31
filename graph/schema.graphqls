@@ -2,37 +2,36 @@ scalar Time
 
 type Epoch {
   id: ID!
-  start_block: Int!
-  end_block: Int!
-  number: Int!
-  created_at: Time!
+  StartBlock: Int!
+  EndBlock: Int!
+  Number: Int!
+  CreatedAt: Time!
 }
 
 type ValidatorGroup {
-  id: ID!
-  address: String!
-  name: String
-  email: String
-  website_url: String
-  discord_tag: String
-  twitter_username: String
-  verified_dns: Boolean
-  geographic_location: String
-  created_at: Time!
-  epoch_registered_at: Int
-  epochs_served: Int
-  currently_elected: Boolean!
-  recieved_votes: Int!
-  available_votes: Int!
-  group_score: Float!
-  group_share: Float!
-  locked_celo: Float
-  locked_celo_percentile: Float
-  slashing_penalty_score: Float
-  estimated_apy: Float
-  transparency_score: Float
-  performance_score: Float
-  validators: [Validator!]!
+  ID: ID!
+  Address: String!
+  Name: String
+  Email: String
+  WebsiteUrl: String
+  DiscordTag: String
+  TwitterUsername: String
+  VerifiedDns: Boolean!
+  GeographicLocation: String!
+  EpochRegisteredAt: Int!
+  EpochsServed: Int!
+  CurrentlyElected: Boolean!
+  RecievedVotes: Int!
+  AvailableVotes: Int!
+  GroupScore: Float!
+  GroupShare: Float!
+  LockedCelo: Int!
+  LockedCeloPercentile: Float!
+  SlashingPenaltyScore: Float!
+  EstimatedAPY: Float!
+  TransparencyScore: Float!
+  PerformanceScore: Float!
+  Validators: [Validator!]!
 }
 
 type Validator {
@@ -43,25 +42,21 @@ type Validator {
   created_at: Time!
 }
 
-
-type VGSocialInfo {
-  address: String!
-  name: String
-  email: String
-  website_url: String
-  discord_tag: String
-  twitter_username: String
-  verified_dns: Boolean
-  geographic_location: String
-
-}
-
 type Query {
-  ValidatorGroups(sort_by_score: Boolean, limit: Int): [ValidatorGroup!]!
+  ValidatorGroups(
+    sort_by_score: Boolean = false
+    limit: Int
+  ): [ValidatorGroup!]!
   ValidatorGroup(address: String!): ValidatorGroup
 }
 
-
 type Mutation {
-  UpdateVGSocialInfo(VGSocialInfo): ValidatorGroup
+  UpdateVGSocialInfo(
+    vg_id: ID!
+    email: String
+    website_url: String
+    discord_tag: String
+    twitter_username: String
+    geographic_location: String
+  ): ValidatorGroup
 }

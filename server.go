@@ -13,7 +13,6 @@ import (
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/generated"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/model"
 	"github.com/go-chi/chi"
-	"github.com/go-pg/pg/extra/pgdebug"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	"github.com/joho/godotenv"
@@ -47,26 +46,17 @@ func main() {
 
 	defer DB.Close()
 
-	DB.AddQueryHook(pgdebug.DebugHook{
-		Verbose: true,
-	})
+	// DB.AddQueryHook(pgdebug.DebugHook{
+	// 	Verbose: true,
+	// })
 
 	ctx := context.Background()
 	if err := DB.Ping(ctx); err != nil {
 		log.Println(err)
 	}
 
-	DropAllTables(DB)
-	CreateAllTables(DB)
-
-	// indexer.Indexer(DB)
-	// scheduler := cron.New()
-	// scheduler.AddFunc("@every 6h", func() {
-	// 	fmt.Println("Starting indexing")
-	// 	indexer.Indexer(DB)
-	// 	fmt.Println("Indexing complete.")
-	// })
-	// scheduler.Start()
+	// DropAllTables(DB)
+	// CreateAllTables(DB)
 
 	router := chi.NewRouter()
 
@@ -75,14 +65,14 @@ func main() {
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            false,
 	}).Handler)
 
 	config := generated.Config{Resolvers: &graph.Resolver{
 		DB: DB,
 	}}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
-	router.Handle("/", playground.Handler("Celo Indexer", "/query"))
+	router.Handle("/", playground.Handler("CVVT", "/query"))
 	router.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
