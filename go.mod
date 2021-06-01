@@ -7,7 +7,7 @@ require (
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-pg/pg v8.0.7+incompatible
 	github.com/go-pg/pg/extra/pgdebug v0.2.0
-	github.com/go-pg/pg/v10 v10.9.0
+	github.com/go-pg/pg/v10 v10.9.3
 	github.com/joho/godotenv v1.3.0
 	github.com/machinebox/graphql v0.2.2
 	github.com/robfig/cron v1.2.0

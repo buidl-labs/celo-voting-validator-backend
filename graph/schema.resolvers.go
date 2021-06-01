@@ -23,29 +23,32 @@ func (r *epochResolver) Number(ctx context.Context, obj *model.Epoch) (int, erro
 	return int(obj.Number), nil
 }
 
-func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error) {
+func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error) {
 	vg := new(model.ValidatorGroup)
 	if err := r.DB.Model(vg).Where("ID = ?", vgID).Relation("Validators").Limit(1).Select(); err != nil {
 		return vg, err
 	}
 	vg_updated := false
 	if email != nil {
+		// Validate Email before updating.
+
 		vg.Email = *email
 		vg_updated = true
 	}
-	if websiteURL != nil {
-		vg.WebsiteURL = *websiteURL
-		vg_updated = true
-	}
+
 	if discordTag != nil {
+		// Validate discordTag before updating
 		vg.DiscordTag = *discordTag
 		vg_updated = true
 	}
+
 	if twitterUsername != nil {
+		// Validate twitterUsername before updating
 		vg.TwitterUsername = *twitterUsername
 		vg_updated = true
 	}
 	if geographicLocation != nil {
+		// Validate geographicLocation before updating
 		vg.GeographicLocation = *geographicLocation
 		vg_updated = true
 	}

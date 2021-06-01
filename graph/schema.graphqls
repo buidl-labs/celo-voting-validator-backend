@@ -54,7 +54,6 @@ type Mutation {
   UpdateVGSocialInfo(
     vg_id: ID!
     email: String
-    website_url: String
     discord_tag: String
     twitter_username: String
     geographic_location: String

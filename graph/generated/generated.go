@@ -55,7 +55,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		UpdateVGSocialInfo func(childComplexity int, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) int
+		UpdateVGSocialInfo func(childComplexity int, vgID string, email *string, discordTag *string, twitterUsername *string, geographicLocation *string) int
 	}
 
 	Query struct {
@@ -104,7 +104,7 @@ type EpochResolver interface {
 	Number(ctx context.Context, obj *model.Epoch) (int, error)
 }
 type MutationResolver interface {
-	UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error)
+	UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error)
 }
 type QueryResolver interface {
 	ValidatorGroups(ctx context.Context, sortByScore *bool, limit *int) ([]*model.ValidatorGroup, error)
@@ -180,7 +180,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateVGSocialInfo(childComplexity, args["vg_id"].(string), args["email"].(*string), args["website_url"].(*string), args["discord_tag"].(*string), args["twitter_username"].(*string), args["geographic_location"].(*string)), true
+		return e.complexity.Mutation.UpdateVGSocialInfo(childComplexity, args["vg_id"].(string), args["email"].(*string), args["discord_tag"].(*string), args["twitter_username"].(*string), args["geographic_location"].(*string)), true
 
 	case "Query.ValidatorGroup":
 		if e.complexity.Query.ValidatorGroup == nil {
@@ -513,7 +513,7 @@ type Validator {
 type Query {
   ValidatorGroups(
     sort_by_score: Boolean = false
-    limit: Int = 150
+    limit: Int
   ): [ValidatorGroup!]!
   ValidatorGroup(address: String!): ValidatorGroup
 }
@@ -522,7 +522,6 @@ type Mutation {
   UpdateVGSocialInfo(
     vg_id: ID!
     email: String
-    website_url: String
     discord_tag: String
     twitter_username: String
     geographic_location: String
@@ -558,41 +557,32 @@ func (ec *executionContext) field_Mutation_UpdateVGSocialInfo_args(ctx context.C
 	}
 	args["email"] = arg1
 	var arg2 *string
-	if tmp, ok := rawArgs["website_url"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("website_url"))
+	if tmp, ok := rawArgs["discord_tag"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_tag"))
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["website_url"] = arg2
+	args["discord_tag"] = arg2
 	var arg3 *string
-	if tmp, ok := rawArgs["discord_tag"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord_tag"))
+	if tmp, ok := rawArgs["twitter_username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("twitter_username"))
 		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["discord_tag"] = arg3
+	args["twitter_username"] = arg3
 	var arg4 *string
-	if tmp, ok := rawArgs["twitter_username"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("twitter_username"))
+	if tmp, ok := rawArgs["geographic_location"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geographic_location"))
 		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["twitter_username"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["geographic_location"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geographic_location"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["geographic_location"] = arg5
+	args["geographic_location"] = arg4
 	return args, nil
 }
 
@@ -888,7 +878,7 @@ func (ec *executionContext) _Mutation_UpdateVGSocialInfo(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateVGSocialInfo(rctx, args["vg_id"].(string), args["email"].(*string), args["website_url"].(*string), args["discord_tag"].(*string), args["twitter_username"].(*string), args["geographic_location"].(*string))
+		return ec.resolvers.Mutation().UpdateVGSocialInfo(rctx, args["vg_id"].(string), args["email"].(*string), args["discord_tag"].(*string), args["twitter_username"].(*string), args["geographic_location"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
