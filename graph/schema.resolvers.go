@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/generated"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/model"
@@ -31,7 +32,6 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 	vg_updated := false
 	if email != nil {
 		// Validate Email before updating.
-
 		vg.Email = *email
 		vg_updated = true
 	}
@@ -64,12 +64,32 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 }
 
 func (r *queryResolver) ValidatorGroups(ctx context.Context, sortByScore *bool, limit *int) ([]*model.ValidatorGroup, error) {
+
+	const OrderExpression = "(validator_group.performance_score * 0.9 + validator_group.transparency_score * 0.1) desc"
+
 	var vgs_db []*model.ValidatorGroup
+
+	doSort := false
+	if sortByScore != nil {
+		doSort = *sortByScore
+	}
+
 	if limit != nil {
 		if *limit <= 0 {
 			return vgs_db, errors.New("limit needs to be more than 0")
 		}
 
+		// If limit is provided and sortByScore is true
+		if doSort {
+			err := r.DB.Model(&vgs_db).Relation("Validators").Limit(*limit).OrderExpr(OrderExpression).Select()
+			if err != nil {
+				log.Println(err)
+				return vgs_db, err
+			}
+			return vgs_db, nil
+		}
+
+		// If limit is provided but sortByScore is false
 		err := r.DB.Model(&vgs_db).Relation("Validators").Limit(*limit).Select()
 		if err != nil {
 			return vgs_db, err
@@ -77,6 +97,16 @@ func (r *queryResolver) ValidatorGroups(ctx context.Context, sortByScore *bool, 
 		return vgs_db, nil
 	}
 
+	// If limit is not provided and sortByScore is true
+	if doSort {
+		err := r.DB.Model(&vgs_db).Relation("Validators").OrderExpr(OrderExpression).Select()
+		if err != nil {
+			return vgs_db, err
+		}
+		return vgs_db, nil
+	}
+
+	// If limit isn't provided and sortByScore is false.
 	if err := r.DB.Model(&vgs_db).Relation("Validators").Select(); err != nil {
 		return vgs_db, err
 	}
