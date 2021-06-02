@@ -10,6 +10,7 @@ import (
 
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/generated"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/model"
+	"github.com/buidl-labs/celo-voting-validator-backend/utils"
 )
 
 func (r *epochResolver) StartBlock(ctx context.Context, obj *model.Epoch) (int, error) {
@@ -32,12 +33,20 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 	vg_updated := false
 	if email != nil {
 		// Validate Email before updating.
+		_, err := utils.ValidateEmail(*email)
+		if err != nil {
+			return vg, err
+		}
 		vg.Email = *email
 		vg_updated = true
 	}
 
 	if discordTag != nil {
 		// Validate discordTag before updating
+		_, err := utils.ValidateDiscordTag(*discordTag)
+		if err != nil {
+			return vg, err
+		}
 		vg.DiscordTag = *discordTag
 		vg_updated = true
 	}
@@ -49,6 +58,10 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 	}
 	if geographicLocation != nil {
 		// Validate geographicLocation before updating
+		_, err := utils.ValidateGeoURL(*geographicLocation)
+		if err != nil {
+			return vg, err
+		}
 		vg.GeographicLocation = *geographicLocation
 		vg_updated = true
 	}

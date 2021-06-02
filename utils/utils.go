@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"log"
 	"net"
 	"net/url"
 	"regexp"
@@ -68,10 +69,11 @@ func ValidateDiscordTag(discoTag string) (bool, error) {
 	if len(discoTagParts[1]) != 4 {
 		return false, errors.New("discriminator needs to be 4 digits")
 	}
-	if len(discoTagParts[0]) < minDiscordTagLength || len(discoTagParts) > maxDiscordTagLength {
+	if len(discoTagParts[0]) < minUsernameLength || len(discoTagParts[0]) > maxUsernameLength {
+		log.Println(discoTagParts, len(discoTagParts[0]))
 		return false, errors.New("discord tag username doesn't match length requirements")
 	}
-	if strings.Contains(discoTag, "#") || strings.Contains(discoTag, "@") || strings.Contains(discoTag, ":") {
+	if strings.Contains(discoTagParts[0], "#") || strings.Contains(discoTagParts[0], "@") || strings.Contains(discoTagParts[0], ":") {
 		return false, errors.New("discord tag username contains restricted characters")
 	}
 
