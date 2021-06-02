@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"net"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -31,4 +32,16 @@ func ValidateEmail(email string) (bool, error) {
 	} else {
 		return false, errors.New("email didn't pass pattern matching")
 	}
+}
+
+func ValidateGeoURL(geoURL string) (bool, error) {
+	parsedURL, err := url.ParseRequestURI(geoURL)
+	if err != nil {
+		return false, err
+	}
+	containsMap := strings.Contains(parsedURL.Path, "map")
+	if !containsMap {
+		return false, errors.New("url doesn't contain 'map'")
+	}
+	return true, nil
 }
