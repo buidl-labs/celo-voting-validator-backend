@@ -45,3 +45,35 @@ func ValidateGeoURL(geoURL string) (bool, error) {
 	}
 	return true, nil
 }
+
+func ValidateDiscordTag(discoTag string) (bool, error) {
+	minUsernameLength := 2
+	maxUsernameLength := 32
+	disciminatorLength := 4
+	maxDiscordTagLength := maxUsernameLength + disciminatorLength + 1
+	minDiscordTagLength := minUsernameLength + disciminatorLength + 1
+	if len(discoTag) > maxDiscordTagLength {
+		return false, errors.New("discord tag too long")
+	}
+	if len(discoTag) < minDiscordTagLength {
+		return false, errors.New("discord tag too short")
+	}
+	if !strings.Contains(discoTag, "#") {
+		return false, errors.New("discord tag needs to have '#'")
+	}
+	discoTagParts := strings.Split(discoTag, "#")
+	if len(discoTagParts) != 2 {
+		return false, errors.New("discord tag doesn't match pattern")
+	}
+	if len(discoTagParts[1]) != 4 {
+		return false, errors.New("discriminator needs to be 4 digits")
+	}
+	if len(discoTagParts[0]) < minDiscordTagLength || len(discoTagParts) > maxDiscordTagLength {
+		return false, errors.New("discord tag username doesn't match length requirements")
+	}
+	if strings.Contains(discoTag, "#") || strings.Contains(discoTag, "@") || strings.Contains(discoTag, ":") {
+		return false, errors.New("discord tag username contains restricted characters")
+	}
+
+	return true, nil
+}
