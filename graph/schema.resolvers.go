@@ -6,9 +6,11 @@ package graph
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/generated"
 	"github.com/buidl-labs/celo-voting-validator-backend/graph/model"
+	"github.com/buidl-labs/celo-voting-validator-backend/utils"
 )
 
 func (r *epochResolver) StartBlock(ctx context.Context, obj *model.Epoch) (int, error) {
@@ -23,29 +25,43 @@ func (r *epochResolver) Number(ctx context.Context, obj *model.Epoch) (int, erro
 	return int(obj.Number), nil
 }
 
-func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, websiteURL *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error) {
+func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, email *string, discordTag *string, twitterUsername *string, geographicLocation *string) (*model.ValidatorGroup, error) {
 	vg := new(model.ValidatorGroup)
 	if err := r.DB.Model(vg).Where("ID = ?", vgID).Relation("Validators").Limit(1).Select(); err != nil {
 		return vg, err
 	}
 	vg_updated := false
 	if email != nil {
+		// Validate Email before updating.
+		_, err := utils.ValidateEmail(*email)
+		if err != nil {
+			return vg, err
+		}
 		vg.Email = *email
 		vg_updated = true
 	}
-	if websiteURL != nil {
-		vg.WebsiteURL = *websiteURL
-		vg_updated = true
-	}
+
 	if discordTag != nil {
+		// Validate discordTag before updating
+		_, err := utils.ValidateDiscordTag(*discordTag)
+		if err != nil {
+			return vg, err
+		}
 		vg.DiscordTag = *discordTag
 		vg_updated = true
 	}
+
 	if twitterUsername != nil {
+		// Validate twitterUsername before updating
 		vg.TwitterUsername = *twitterUsername
 		vg_updated = true
 	}
 	if geographicLocation != nil {
+		// Validate geographicLocation before updating
+		_, err := utils.ValidateGeoURL(*geographicLocation)
+		if err != nil {
+			return vg, err
+		}
 		vg.GeographicLocation = *geographicLocation
 		vg_updated = true
 	}
@@ -62,12 +78,32 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 }
 
 func (r *queryResolver) ValidatorGroups(ctx context.Context, sortByScore *bool, limit *int) ([]*model.ValidatorGroup, error) {
+
+	const OrderExpression = "(validator_group.performance_score * 0.9 + validator_group.transparency_score * 0.1) desc"
+
 	var vgs_db []*model.ValidatorGroup
+
+	doSort := false
+	if sortByScore != nil {
+		doSort = *sortByScore
+	}
+
 	if limit != nil {
 		if *limit <= 0 {
 			return vgs_db, errors.New("limit needs to be more than 0")
 		}
 
+		// If limit is provided and sortByScore is true
+		if doSort {
+			err := r.DB.Model(&vgs_db).Relation("Validators").Limit(*limit).OrderExpr(OrderExpression).Select()
+			if err != nil {
+				log.Println(err)
+				return vgs_db, err
+			}
+			return vgs_db, nil
+		}
+
+		// If limit is provided but sortByScore is false
 		err := r.DB.Model(&vgs_db).Relation("Validators").Limit(*limit).Select()
 		if err != nil {
 			return vgs_db, err
@@ -75,6 +111,16 @@ func (r *queryResolver) ValidatorGroups(ctx context.Context, sortByScore *bool, 
 		return vgs_db, nil
 	}
 
+	// If limit is not provided and sortByScore is true
+	if doSort {
+		err := r.DB.Model(&vgs_db).Relation("Validators").OrderExpr(OrderExpression).Select()
+		if err != nil {
+			return vgs_db, err
+		}
+		return vgs_db, nil
+	}
+
+	// If limit isn't provided and sortByScore is false.
 	if err := r.DB.Model(&vgs_db).Relation("Validators").Select(); err != nil {
 		return vgs_db, err
 	}
