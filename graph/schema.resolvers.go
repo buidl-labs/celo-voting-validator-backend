@@ -51,6 +51,7 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 	}
 
 	if vg_updated {
+		vg.TransparencyScore = calculateTransparencyScore(vg)
 		_, err := r.DB.Model(vg).WherePK().Update()
 		if err != nil {
 			return vg, err
