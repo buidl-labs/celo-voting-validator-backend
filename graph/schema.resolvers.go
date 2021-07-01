@@ -78,7 +78,6 @@ func (r *mutationResolver) UpdateVGSocialInfo(ctx context.Context, vgID string, 
 }
 
 func (r *queryResolver) ValidatorGroups(ctx context.Context, sortByScore *bool, limit *int) ([]*model.ValidatorGroup, error) {
-
 	const OrderExpression = "(validator_group.performance_score * 0.9 + validator_group.transparency_score * 0.1) desc"
 
 	var vgs_db []*model.ValidatorGroup

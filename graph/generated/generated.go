@@ -73,6 +73,7 @@ type ComplexityRoot struct {
 
 	ValidatorGroup struct {
 		Address              func(childComplexity int) int
+		AttestationScore     func(childComplexity int) int
 		AvailableVotes       func(childComplexity int) int
 		CurrentlyElected     func(childComplexity int) int
 		DiscordTag           func(childComplexity int) int
@@ -247,6 +248,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ValidatorGroup.Address(childComplexity), true
+
+	case "ValidatorGroup.AttestationScore":
+		if e.complexity.ValidatorGroup.AttestationScore == nil {
+			break
+		}
+
+		return e.complexity.ValidatorGroup.AttestationScore(childComplexity), true
 
 	case "ValidatorGroup.AvailableVotes":
 		if e.complexity.ValidatorGroup.AvailableVotes == nil {
@@ -496,6 +504,7 @@ type ValidatorGroup {
   LockedCelo: Int!
   LockedCeloPercentile: Float!
   SlashingPenaltyScore: Float!
+  AttestationScore: Float!
   EstimatedAPY: Float!
   TransparencyScore: Float!
   PerformanceScore: Float!
@@ -1850,6 +1859,41 @@ func (ec *executionContext) _ValidatorGroup_SlashingPenaltyScore(ctx context.Con
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SlashingPenaltyScore, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ValidatorGroup_AttestationScore(ctx context.Context, field graphql.CollectedField, obj *model.ValidatorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ValidatorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AttestationScore, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3435,6 +3479,11 @@ func (ec *executionContext) _ValidatorGroup(ctx context.Context, sel ast.Selecti
 			}
 		case "SlashingPenaltyScore":
 			out.Values[i] = ec._ValidatorGroup_SlashingPenaltyScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "AttestationScore":
+			out.Values[i] = ec._ValidatorGroup_AttestationScore(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

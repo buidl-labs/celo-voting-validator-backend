@@ -28,6 +28,7 @@ type ValidatorGroup {
   LockedCelo: Int!
   LockedCeloPercentile: Float!
   SlashingPenaltyScore: Float!
+  AttestationScore: Float!
   EstimatedAPY: Float!
   TransparencyScore: Float!
   PerformanceScore: Float!
